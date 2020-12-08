@@ -6,6 +6,7 @@ class Cell():
 		self.x = x
 		self.y = y
 		self.is_mine = False
+		self.flagged = False
 		self.environment_mines = []
 		self.environment_empties = []
 		self.button = Button(window, text = "", bg='grey', command = lambda: player_move(self))
@@ -110,7 +111,7 @@ def environment_check(button):
 		pass
 
 def player_move(button):
-	global mines, game, opened_cells, label
+	global mines, game, label
 	if game:
 		if button.is_mine:
 			game = False
@@ -122,12 +123,17 @@ def player_move(button):
 			else:
 				button.button['text'] = str(len(button.environment_mines))
 			button.button['bg'] = 'white'
-			if not button in opened_cells:
-				opened_cells.append(button)
-	if len(opened_cells) >= 90:
-		game = False
-		label['text'] = 'YOU WIN'
-	print(len(opened_cells))
+
+	if flags == 0:
+		i = 0
+		for y in range(len(mines)):
+			for x in range(len(mines[y])):
+				if mines[y][x].is_mine and mines[y][x].flagged:
+					i += 1
+
+		if i == 10:
+			game = False
+			label['text'] = "YOU WIN"
 
 def zero_test(first_cell):
 	global opened_cells
@@ -148,7 +154,6 @@ def zero_test(first_cell):
 
 	for z in range(len(checked_cells)):
 		checked_cells[z].button['bg'] = 'white'
-		opened_cells.append(checked_cells[z])
 
 def all_mines_find():
 	for y in range(len(mines)):
@@ -156,6 +161,19 @@ def all_mines_find():
 			if mines[y][x].is_mine:
 				mines[y][x].button['bg'] = 'red'
 
+def flag(event):
+	global mines, flags, flag_label
+	if not mines[(window.winfo_pointery() - window.winfo_rooty() - 50 ) // 50][(window.winfo_pointerx() - window.winfo_rootx()) // 50].flagged:
+		mines[(window.winfo_pointery() - window.winfo_rooty() - 50 ) // 50][(window.winfo_pointerx() - window.winfo_rootx()) // 50].button['bg'] = 'green'
+		mines[(window.winfo_pointery() - window.winfo_rooty() - 50 ) // 50][(window.winfo_pointerx() - window.winfo_rootx()) // 50].flagged = True
+		flags -= 1
+	else:
+		mines[(window.winfo_pointery() - window.winfo_rooty() - 50 ) // 50][(window.winfo_pointerx() - window.winfo_rootx()) // 50].button['bg'] = 'grey'
+		mines[(window.winfo_pointery() - window.winfo_rooty() - 50 ) // 50][(window.winfo_pointerx() - window.winfo_rootx()) // 50].flagged = False
+		flags += 1
+
+	flag_label['text'] = str(flags)
+	
 window = Tk()
 window.geometry("500x550")
 window.resizable(False, False)
@@ -163,9 +181,14 @@ window.resizable(False, False)
 label = Label(window, text = "")
 label.place(x = 0, y = 0, width = 500, height = 50)
 
+flag_label = Label(window, text = 10)
+flag_label.place(x = 0, y = 0, width = 100, height = 50)
+
+window.bind('<Button-3>', flag)
+
 mines = []
 game = True
-opened_cells = []
+flags = 10
 generate()
 
 window.mainloop()
