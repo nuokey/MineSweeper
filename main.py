@@ -177,6 +177,7 @@ def flag(event):
 window = Tk()
 window.geometry("500x550")
 window.resizable(False, False)
+window.title("MineSweeper")
 
 label = Label(window, text = "")
 label.place(x = 0, y = 0, width = 500, height = 50)
